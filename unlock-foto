@@ -1,0 +1,64 @@
+// ==UserScript==
+// @name         Unlock Foto
+// @version      0.1.1
+// @description  Скрипт дает возможность восстановить скрытую фотографию из блока фотографий над стеной пользователя
+// @author       Alexander Lebedev
+// @homepage     https://vk.com/alexander_lebedev1977
+// @match        *://vk.com/*
+// @license      GNU AFFERO GENERAL PUBLIC LICENSE  
+// @copyleft      https://www.gnu.org/licenses/agpl-3.0.en.html 
+// @grant        GM_registerMenuCommand
+// @grant        GM_notification
+// @grant        Pavel Gromadchuk https://vk.com/gromadchuk
+// ==/UserScript==
+
+(function () {
+  'use strict';
+
+  var iconUrl = 'https://vk.com/images/icons/msg_{status}_2x.png';
+
+  GM_registerMenuCommand('Восстановить фотографию!', function () {
+    var pars = location.href.match(/photo([0-9]+)_([0-9]+)/);
+
+    if (pars) {
+      if (unsafeWindow.cur.options && unsafeWindow.cur.options.profph_hash) {
+        unsafeWindow.ajax.post('al_profile.php', {
+          act: 'return_photo',
+          al: 1,
+          hash: unsafeWindow.cur.options.profph_hash,
+          photo_id: pars[2]
+        }, {
+          onDone: function (data) {
+            if (data.length > 500) {
+              GM_notification({
+                text: 'Фото восстановлено! :)',
+                image: iconUrl.replace('{status}', 'ok')
+              });
+            }
+            else {
+              GM_notification({
+                text: 'Что-то пошло не так. :(',
+                image: iconUrl.replace('{status}', 'error')
+              });
+            }
+          }
+        });
+      } else {
+        GM_notification({
+          text: 'Для восстановления фотографии, нужно открыть её со страницы своего профиля. Нажмите на уведомление для открытия инструкции.',
+          image: iconUrl.replace('{status}', 'error'),
+          onclick: function () {
+            window.open('https://vk.com/@alexander_lebedev1977-unlock-foto');
+          }
+        });
+      }
+    } else {
+      GM_notification({
+        text: 'Откройте фотографию, которую нужно вернуть в блок',
+        image: iconUrl.replace('{status}', 'error')
+      });
+    }
+  }, 'vk-photo-recovery');
+})();
+	
+24/08/2018 18:48:09 
